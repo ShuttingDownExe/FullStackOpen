@@ -24,7 +24,7 @@ sequenceDiagram
 
     [Browser Executes main.js to fetch data]
 
-    browser->>server: https://studies.cs.helsinki.fi/exampleapp/data.json
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
     activate server
     server->>browser: JSON File
     deactivate server
