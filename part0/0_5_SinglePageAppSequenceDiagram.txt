@@ -1,0 +1,35 @@
+sequenceDiagram
+    participant browser
+    participant server
+
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/spa
+    activate server
+    server->>browser: HTML Document
+    deactivate server
+
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
+    activate server
+    server->>browser: CSS StyleSheet
+    deactivate server
+
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/spa.js
+    activate server
+    server->>browser: JavaScript File
+    deactivate server
+
+    [Browser executes spa.js]
+
+    browser->>server: Get https://studies.cs.helsinki.fi/exampleapp/data.json
+    activate server
+    server->>browser JSON File
+    deactivate
+
+    [User enters note and submits]
+
+    browser ====X [JavaScript blocks default form submission]
+    browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+    activate server
+    server->>browser: 201 CREATED {"message":"note created"}
+
+    [Browser adds new note object and adds it to in memory list of objects that are already rendered]
+    [Browser calls JavaScript function to render new note]
