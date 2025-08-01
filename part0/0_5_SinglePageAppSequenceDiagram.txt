@@ -1,3 +1,6 @@
+//Oops! I think I added both 0.5 and 0.6 here. I really dont want to make another file so...... sorry ig
+
+
 sequenceDiagram
     participant browser
     participant server
