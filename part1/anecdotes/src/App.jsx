@@ -18,7 +18,7 @@ const App = () => {
     );
 
     const Randomer = () => {
-        let value = Math.floor(Math.random()*7);
+        let value = Math.floor(Math.random()*anecdotes.length);
         while(value === selected){
             value = Math.floor(Math.random()*anecdotes.length);
         }
@@ -34,11 +34,9 @@ const App = () => {
         });
     }
 
-    const MostVoted = () => {
-        const vote = Math.max(...votes);
-        const index = votes.indexOf(vote);
-        return anecdotes[index]
-    }
+    const maxVotes = Math.max(...votes);
+    const mostVotedIndex = votes.indexOf(maxVotes);
+    const NoVotesYet = maxVotes === 0;
 
     return(
         <div>
@@ -46,7 +44,7 @@ const App = () => {
             <p> has {votes[selected]} votes</p>
             <button onClick={Voter}>Vote</button>
             <button onClick={Randomer}>next anecdote</button>
-            <p>{MostVoted()}</p>
+            <p>{NoVotesYet ? "No votes yet" : anecdotes[mostVotedIndex]}</p>
         </div>
     )
 }
