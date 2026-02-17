@@ -1,12 +1,17 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/personService'
 
-const Persons = ({persons}) => {
+const Persons = ({persons, isFilter, onDelete}) => {
   return (
     <ul>
       {
         persons.map(p => 
-          <li key={p.id}>{p.name} : {p.number}</li>
+          <li key={p.id}>{p.name} : {p.number} 
+          {
+            isFilter ? 
+            "" : 
+            <button onClick={() => onDelete(p.id)}>delete</button>
+          }</li>
         )
       }
     </ul>
@@ -20,7 +25,7 @@ const Filter = ({filterQuery, handleFilterChange, filteredPersons}) => {
         <input onChange={handleFilterChange} value={filterQuery}/>
       </div>
       <div>
-        <Persons persons={filteredPersons}/>
+        <Persons persons={filteredPersons} isFilter={true}/>
       </div>
     </form>
   )
@@ -45,18 +50,17 @@ const PersonForm = ({newName, newPhone, handlePersonTextChange, handlePhoneTextC
 const App = () => {
   const [persons, setPersons] = useState([])
 
+  const hook = () => {
+    personService
+      .getAll()
+      .then(
+        response => {
+          setPersons(response)
+        }
+      )
+  }
 
-    useEffect(() => {
-        console.log("Use Effect Triggered")
-        axios.get('http://localhost:3001/persons').then(
-            response => {
-                console.log("Getting data")
-                console.log(response.data)
-                setPersons(response.data)
-                console.log("Got data")
-            }
-        )
-    }, []);
+  useEffect(hook,[])
 
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
@@ -72,14 +76,48 @@ const App = () => {
     const personObject = {
       name: newName,
       number: newPhone,
-      id: Date.now()
+      id: String(Date.now())
     }
-    const exists = persons.some(p => p.name === newName)
+    const exists = persons.find(p => p.name === newName)
     if (!exists) {
-      setPersons(persons.concat(personObject))
-      setNewName("")
-      setNewPhone("")
-    } else alert(`${newName} is already added to the phonebook`)
+      personService.create(personObject).then(
+        () => {
+          setPersons(persons.concat(personObject))
+          setNewName("")
+          setNewPhone("")
+        }
+      )
+    } else {
+      if (window.confirm(`${newName} is already added to the phonebook. 
+        Replace the old number with a new one?`))
+      {
+        personService.update(exists.id, personObject).then(
+          () => {
+            personService
+              .update(exists.id,personObject)
+              .then(response => {
+                setPersons(persons.map(person => 
+                  person.id !== exists.id ? person : response
+                ))
+                setNewName("")
+                setNewPhone("")
+              })
+          }
+        )
+      }
+    }
+  }
+
+  const onDelete = (id) => {
+    if (window.confirm(`Delete ${persons.find(p => p.id === id).name} ?`)){
+      personService.remove(id).then(
+        setPersons(() => {
+          return persons.filter(p => p.id !== id)
+        })
+        ).catch(error => {
+        alert(`Unexpected Error: ${error}`)
+      })
+    }
   }
 
   const handlePersonTextChange = (event) => {
@@ -99,17 +137,28 @@ const App = () => {
 
   const filteredPersons = persons.filter((person) => person.name.includes(filterQuery))
 
-  
-
   return (
     <div>
       <h1>Phonebook</h1>
       <h3>Filter</h3>
-      <Filter filterQuery={filterQuery} handleFilterChange={handleFilterChange} filteredPersons={filteredPersons} />
+      <Filter 
+        filterQuery={filterQuery} 
+        handleFilterChange={handleFilterChange} 
+        filteredPersons={filteredPersons} 
+      />
       <h3>Form</h3>
-      <PersonForm newName={newName} newPhone={newPhone} handlePersonTextChange={handlePersonTextChange} handlePhoneTextChange={handlePhoneTextChange} onClick={onClick} />
+      <PersonForm 
+        newName={newName} 
+        newPhone={newPhone} 
+        handlePersonTextChange={handlePersonTextChange} 
+        handlePhoneTextChange={handlePhoneTextChange} 
+        onClick={onClick}
+      />
       <h2>Numbers</h2>
-      <Persons persons={persons}/>
+      <Persons 
+        persons={persons} 
+        onDelete={onDelete}
+      />
       <div>debug: {newName}</div>
     </div>
   )
