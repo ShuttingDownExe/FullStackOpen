@@ -67,7 +67,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [filterQuery, setFilterQuery] = useState('')
-  const [message, SetMessage] = useState(null)
+  const [message, setMessage] = useState(null)
+  const [messageType, setMessageType] = useState("info")
 
   const onClick = (event) => {
     event.preventDefault()
@@ -90,22 +91,29 @@ const App = () => {
           setNewPhone("")
         }
       )
-      SetMessage(`${personObject.name} has been added`)
+      setMessageType('info')
+      setMessage(`${personObject.name} has been added`)
     } else {
       if (window.confirm(`${newName} is already added to the phonebook. 
         Replace the old number with a new one?`))
       {
         personService.update(exists.id, personObject).then(
-          () => {
-            personService
-              .update(exists.id,personObject)
-              .then(response => {
-                setPersons(persons.map(person => 
-                  person.id !== exists.id ? person : response
-                ))
-                setNewName("")
-                setNewPhone("")
-              })
+          response => {
+            setPersons(persons.map(person => 
+              person.id !== exists.id ? person : response
+            ))
+            setNewName("")
+            setNewPhone("")
+            setMessageType('info')
+            setMessage(`${personObject.name} has been modified`)
+          }
+        )
+        .catch(
+          error => {
+            if (error?.response?.status == 404){
+              setMessageType('error')
+              setMessage(`${personObject.name} does not exist`)
+            }
           }
         )
       }
@@ -114,10 +122,10 @@ const App = () => {
 
   const onDelete = (id) => {
     if (window.confirm(`Delete ${persons.find(p => p.id === id).name} ?`)){
-      personService.remove(id).then(
+      personService.remove(id).then(() => {
         setPersons(() => {
           return persons.filter(p => p.id !== id)
-        })
+        })}
         ).catch(error => {
         alert(`Unexpected Error: ${error}`)
       })
@@ -144,7 +152,7 @@ const App = () => {
   return (
     <div>
       <h1>Phonebook</h1>
-      <Notification message={message}/>
+      <Notification message={message} type={messageType}/>
       <h3>Filter</h3>
       <Filter 
         filterQuery={filterQuery} 
