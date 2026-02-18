@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import personService from './services/personService'
+import Notification from './components/Notifications'
 
 const Persons = ({persons, isFilter, onDelete}) => {
   return (
@@ -31,7 +32,8 @@ const Filter = ({filterQuery, handleFilterChange, filteredPersons}) => {
   )
 }
 
-const PersonForm = ({newName, newPhone, handlePersonTextChange, handlePhoneTextChange, onClick}) => {
+const PersonForm = ({newName, newPhone, 
+        handlePersonTextChange, handlePhoneTextChange, onClick}) => {
   return (
     <form>
       <div>
@@ -65,6 +67,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newPhone, setNewPhone] = useState('')
   const [filterQuery, setFilterQuery] = useState('')
+  const [message, SetMessage] = useState(null)
 
   const onClick = (event) => {
     event.preventDefault()
@@ -87,6 +90,7 @@ const App = () => {
           setNewPhone("")
         }
       )
+      SetMessage(`${personObject.name} has been added`)
     } else {
       if (window.confirm(`${newName} is already added to the phonebook. 
         Replace the old number with a new one?`))
@@ -140,6 +144,7 @@ const App = () => {
   return (
     <div>
       <h1>Phonebook</h1>
+      <Notification message={message}/>
       <h3>Filter</h3>
       <Filter 
         filterQuery={filterQuery} 
