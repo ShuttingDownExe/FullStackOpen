@@ -30,7 +30,6 @@ const Filter = ({Countries}) => {
   }
 
   if (Countries.length == 1){
-
     if(countryJson) {
       const Name = countryJson.name.common
       const Capital = countryJson.capital
@@ -54,19 +53,18 @@ const Filter = ({Countries}) => {
           <img src={imgUrl}/>
         </div>
       )
-    }
-
-
-    return(
+    } else {
+      return(
       <p>
         Loading...
       </p>
     )
+    }
   }
 
   return (
     <ul>
-      {Countries.map(c => <li key={c}>{c}</li>)}
+      {Countries.map(c => <li key={c}>{c}<button>show</button></li>)}
     </ul>
   )
 }
