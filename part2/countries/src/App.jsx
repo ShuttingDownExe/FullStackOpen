@@ -9,9 +9,31 @@ const SearchBar = ({onChange}) => {
 }
 
 const Filter = ({Countries}) => {
+  const [countryJson, setCountryJson] = useState(null)
+
+  useEffect(() => {
+    if (Countries.length ==1) {
+      NetworkService.getOne(Countries[0]).then(
+        data => {
+          setCountryJson(data)
+        }
+      )
+    } else {
+      setCountryJson(null)
+    }
+  },[Countries])
+
   if (Countries.length >= 10){
     return(
-      <p>Too many matches, Specify another filter</p>
+      <pre>Too many matches, Specify another filter</pre>
+    )
+  }
+
+  if (Countries.length == 1){
+    return(
+      <p>
+        {countryJson ? JSON.stringify(countryJson, null, 2) : "Loading..."}
+      </p>
     )
   }
 
