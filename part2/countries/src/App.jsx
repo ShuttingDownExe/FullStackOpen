@@ -30,9 +30,36 @@ const Filter = ({Countries}) => {
   }
 
   if (Countries.length == 1){
+
+    if(countryJson) {
+      const Name = countryJson.name.common
+      const Capital = countryJson.capital
+      const Area = countryJson.area
+      const Languages = countryJson.languages
+      const imgUrl = countryJson.flags.png
+
+      return (
+        <div>
+          <h1>{Name}</h1>
+          <p>Capital {Capital}</p>
+          <p>Area {Area}</p>
+          <h1>Languages</h1>
+          <ul>
+            {
+              Object.values(Languages).map((lang) => (
+                <li key={lang}>{lang}</li>
+              ))
+            }
+          </ul>
+          <img src={imgUrl}/>
+        </div>
+      )
+    }
+
+
     return(
       <p>
-        {countryJson ? JSON.stringify(countryJson, null, 2) : "Loading..."}
+        Loading...
       </p>
     )
   }
