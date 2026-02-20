@@ -10,6 +10,7 @@ const SearchBar = ({onChange}) => {
 
 const Filter = ({Countries, onShowCountry}) => {
   const [countryJson, setCountryJson] = useState(null)
+  const [weatherJson, setWeatherJson] = useState(null)
 
   useEffect(() => {
     if (Countries.length ==1) {
@@ -23,19 +24,34 @@ const Filter = ({Countries, onShowCountry}) => {
     }
   },[Countries])
 
+  useEffect(() => {
+    if(countryJson?.latlng){
+      const [lat, lng] = countryJson.latlng
+      NetworkService.getWeather(lat,lng).then(
+        data => {
+          setWeatherJson(data)
+        }
+      )
+    } else {
+      setWeatherJson(null)
+    }
+  },[countryJson])
+
   if (Countries.length >= 10){
     return(
       <pre>Too many matches, Specify another filter</pre>
     )
   }
 
-  if (Countries.length == 1){
-    if(countryJson) {
+  if (Countries.length === 1){
+    if(countryJson && weatherJson) {
       const Name = countryJson.name.common
-      const Capital = countryJson.capital
+      const Capital = countryJson.capital?.[0] ?? "N/A"
       const Area = countryJson.area
       const Languages = countryJson.languages
       const imgUrl = countryJson.flags.png
+
+      console.log(weatherJson)
 
       return (
         <div>
@@ -51,6 +67,10 @@ const Filter = ({Countries, onShowCountry}) => {
             }
           </ul>
           <img src={imgUrl}/>
+          <h1>Weather in {Capital}</h1>
+          <p>Temparature {weatherJson.main.temp}</p>
+          <img src={`https://openweathermap.org/img/wn/${weatherJson.weather[0].icon}@2x.png`}/>
+          <p>wind {weatherJson.wind.speed}</p>
         </div>
       )
     } else {
