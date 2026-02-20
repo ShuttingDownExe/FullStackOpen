@@ -8,7 +8,7 @@ const SearchBar = ({onChange}) => {
   )
 }
 
-const Filter = ({Countries}) => {
+const Filter = ({Countries, onShowCountry}) => {
   const [countryJson, setCountryJson] = useState(null)
 
   useEffect(() => {
@@ -64,7 +64,7 @@ const Filter = ({Countries}) => {
 
   return (
     <ul>
-      {Countries.map(c => <li key={c}>{c}<button>show</button></li>)}
+      {Countries.map(c => <li key={c}>{c}<button onClick={() => onShowCountry(c)}>show</button></li>)}
     </ul>
   )
 }
@@ -87,10 +87,14 @@ function App() {
     console.log(event.target.value)
   }
 
+  const onShowCountry = (countryName) => {
+    setFilteredCountries([countryName])
+  }
+
   return (
     <div>
       <SearchBar onChange={onChange}/>
-      <Filter Countries={filteredCountries}/>
+      <Filter Countries={filteredCountries} onShowCountry={onShowCountry}/>
     </div>
   )
 }
