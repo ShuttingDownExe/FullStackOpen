@@ -69,15 +69,37 @@ app.post("/api/persons", (request, response) => {
     console.log(request.body)
     if (request.body) {
         const body = request.body
+        if(!body.name){
+            return response.status(400).json(
+                {
+                    "Error": "name is not set"
+                }
+            )
+        }
+        if (!body.number){
+            return response.status(400).json(
+                {
+                    "Error": "number is not set"
+                }
+            )
+        }
+        console.log(persons.find(p => p.name === body.name))
+        if (persons.find(p => p.name == body.name)){
+            return response.status(400).json(
+                {
+                    "Error": "name already Exists"
+                }
+            )
+        }
         const person = {
             id: generateId(),
-            content: body.name,
+            name: body.name,
             number: body.number
         }
         persons = persons.concat(person)
         response.json(person)
     }else {
-        response.status(400).json(
+        return response.status(400).json(
             {
                 "Error": "Empty Body"
             }
