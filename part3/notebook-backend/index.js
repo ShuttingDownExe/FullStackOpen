@@ -24,9 +24,19 @@ const people = [
     }
 ]
 
+app.get("/info", (_, response) => {
+    const currDate = new Date()
+    response.send(
+        `<p>Phonebook has info for ${people.length} people</p>`+
+        `<p>${currDate.toString()}</p>`
+    )
+})
+
 app.get("/api/persons", (_, response) => {
     response.json(people)
 })
+
+
 
 const PORT = 3001
 app.listen(PORT, () => {
