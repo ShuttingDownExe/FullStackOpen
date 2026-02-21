@@ -1,6 +1,25 @@
 const express = require("express")
+
+const morgan = require("morgan")
+
+
 const app = express()
+
 app.use(express.json())
+app.use(morgan(function (tokens, req, res) {
+    let body = null
+    if(req.method === "POST"){
+        body = JSON.stringify(req.body)
+    }
+    return [
+        tokens.method(req, res),
+        tokens.url(req, res),
+        tokens.status(req, res),
+        tokens.res(req, res, 'content-length'), '-',
+        tokens['response-time'](req, res), 'ms',
+        `${body ? body : ""}`
+  ].join(' ')
+}))
 
 let persons = [
     { 
@@ -66,7 +85,6 @@ const generateId = () => {
 }
 
 app.post("/api/persons", (request, response) => {
-    console.log(request.body)
     if (request.body) {
         const body = request.body
         if(!body.name){
@@ -83,7 +101,6 @@ app.post("/api/persons", (request, response) => {
                 }
             )
         }
-        console.log(persons.find(p => p.name === body.name))
         if (persons.find(p => p.name == body.name)){
             return response.status(400).json(
                 {
