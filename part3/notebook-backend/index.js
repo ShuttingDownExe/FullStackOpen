@@ -36,7 +36,19 @@ app.get("/api/persons", (_, response) => {
     response.json(people)
 })
 
-
+app.get("/api/persons/:id", (request, response) => {
+    const personId = request.params.id
+    const person = people.find(p => p.id === personId)
+    if (!person) {
+        response.status(404).json(
+            {
+                "Error": "Person with ID not found"
+            }
+        )
+    } else {
+        response.json(person)
+    }
+})
 
 const PORT = 3001
 app.listen(PORT, () => {
