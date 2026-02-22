@@ -79,14 +79,13 @@ const App = () => {
     }
     const personObject = {
       name: newName,
-      number: newPhone,
-      id: String(Date.now())
+      number: newPhone
     }
     const exists = persons.find(p => p.name === newName)
     if (!exists) {
       personService.create(personObject).then(
-        () => {
-          setPersons(persons.concat(personObject))
+        (returnedPerson) => {
+          setPersons(persons.concat(returnedPerson))
           setNewName("")
           setNewPhone("")
         }
