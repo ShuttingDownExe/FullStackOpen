@@ -127,7 +127,16 @@ app.post("/api/persons", (request, response) => {
     }
 })
 
-const PORT = 3001
+if(process.env.NODE_ENV === "production"){
+    app.use(express.static("dist"))
+
+    app.get("*", (_, response) => {
+        response.sendFile(__dirname + "/dist/index.html")
+    })
+}
+
+
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server is runing on port ${PORT}`)
 })
