@@ -1,6 +1,9 @@
+require('dotenv').config()
+
 const express = require("express")
 const morgan = require("morgan")
 const cors = require("cors")
+const Person = require('./modules/person')
 
 
 const app = express()
@@ -24,106 +27,55 @@ app.use(morgan(function (tokens, req, res) {
   ].join(' ')
 }))
 
-let persons = [
-    { 
-      "id": "1",
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": "2",
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": "3",
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": "4",
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
-app.get("/info", (_, response) => {
+app.get("/info", async (_, response) => {
     const currDate = new Date()
+    const totalCount = await Person.countDocuments({})
     response.send(
-        `<p>Phonebook has info for ${people.length} people</p>`+
+        `<p>Phonebook has info for ${totalCount} people</p>`+
         `<p>${currDate.toString()}</p>`
     )
 })
 
 app.get("/api/persons", (_, response) => {
-    response.json(persons)
+    Person.find({}).then(persons => {
+        console.log(persons)
+        response.json(persons)
+    })
 })
 
-app.get("/api/persons/:id", (request, response) => {
-    const personId = request.params.id
-    const person = persons.find(p => p.id === personId)
-    if (!person) {
-        response.status(404).json(
-            {
-                "Error": "Person with ID not found"
-            }
-        )
-    } else {
+app.get("/api/persons/:id", async (request, response) => {
+    try {
+        const personId = request.params.id
+        const person = await Person.findById(personId)
+        if(!person) return response.status(404).json({"Error": "Person not found"})
         response.json(person)
+    } catch (error) {
+        console.log(error)
     }
 })
 
-app.delete("/api/persons/:id", (request, response) => {
-    const personId = request.params.id
-    persons = persons.filter(p => p.id !== personId)
-    response.status(204).end()
+app.delete("/api/persons/:id", async (request, response) => {
+    try {
+        const personId = request.params.id
+        const person = await Person.findByIdAndDelete(personId)
+        if(!person) return response.status(404).json({"Error":"Person not found"})
+        return response.status(204).end()
+    } catch (error) {
+        console.log(error)
+    }
 })
 
-const generateId = () => {
-    let id
-    do {
-        id = String(Math.floor(Math.random() * 100))
-    } while (persons.find(p => p.id === id))
-    return id
-}
-
 app.post("/api/persons", (request, response) => {
-    if (request.body) {
+    console.log(request.body)
+    if(request.body.name && request.body.number) {
         const body = request.body
-        if(!body.name){
-            return response.status(400).json(
-                {
-                    "Error": "name is not set"
-                }
-            )
-        }
-        if (!body.number){
-            return response.status(400).json(
-                {
-                    "Error": "number is not set"
-                }
-            )
-        }
-        if (persons.find(p => p.name == body.name)){
-            return response.status(400).json(
-                {
-                    "Error": "name already Exists"
-                }
-            )
-        }
-        const person = {
-            id: generateId(),
+        const person = new Person({
             name: body.name,
             number: body.number
-        }
-        persons = persons.concat(person)
-        response.json(person)
-    }else {
-        return response.status(400).json(
-            {
-                "Error": "Empty Body"
-            }
-        )
+        })
+        person.save().then(savedNote => response.json(savedNote))
+    } else {
+        response.status(400).json({"Error": "Empty Details"})
     }
 })
 
