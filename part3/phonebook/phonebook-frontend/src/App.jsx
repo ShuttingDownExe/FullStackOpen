@@ -96,6 +96,7 @@ const App = () => {
       if (window.confirm(`${newName} is already added to the phonebook. 
         Replace the old number with a new one?`))
       {
+        console.log(exists.id)
         personService.update(exists.id, personObject).then(
           response => {
             setPersons(persons.map(person => 
