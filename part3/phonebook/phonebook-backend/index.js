@@ -27,13 +27,18 @@ app.use(morgan(function (tokens, req, res) {
   ].join(' ')
 }))
 
-app.get("/info", async (_, response) => {
+app.get("/info", (_, response) => {
     const currDate = new Date()
-    const totalCount = await Person.countDocuments({})
-    response.send(
+    Person.countDocuments({}).then(totalCount => {
+        response.send(
         `<p>Phonebook has info for ${totalCount} people</p>`+
         `<p>${currDate.toString()}</p>`
-    )
+    )   
+    }).catch(error=> {
+        console.log(error)
+        response.status(500).end()
+    })
+    
 })
 
 app.get("/api/persons", (_, response) => {
@@ -43,26 +48,26 @@ app.get("/api/persons", (_, response) => {
     })
 })
 
-app.get("/api/persons/:id", async (request, response) => {
-    try {
-        const personId = request.params.id
-        const person = await Person.findById(personId)
-        if(!person) return response.status(404).json({"Error": "Person not found"})
+app.get("/api/persons/:id", (request, response) => {
+    const personID = request.params.id
+    Person.findById(personID).then(person => {
+        if(!person) response.status(404).json({error: "Person not found"})
         response.json(person)
-    } catch (error) {
-        console.log(error)
-    }
+    }).catch(error => {
+        console.error(error)
+        response.status(500).end()
+    })
 })
 
-app.delete("/api/persons/:id", async (request, response) => {
-    try {
-        const personId = request.params.id
-        const person = await Person.findByIdAndDelete(personId)
-        if(!person) return response.status(404).json({"Error":"Person not found"})
-        return response.status(204).end()
-    } catch (error) {
-        console.log(error)
-    }
+app.delete("/api/persons/:id", (request, response) => {
+    const personID = request.params .id
+    Person.findByIdAndDelete(personID).then(_ => {
+        response.status(204).end()
+    })
+    .catch(error => {
+        console.error(error)
+        response.status(500).end()
+    })
 })
 
 app.post("/api/persons", (request, response) => {
