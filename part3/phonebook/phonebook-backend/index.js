@@ -5,12 +5,10 @@ const morgan = require("morgan")
 const cors = require("cors")
 const Person = require('./modules/person')
 
-
 const app = express()
 
 app.use(express.json())
 app.use(cors())
-
 
 app.use(morgan(function (tokens, req, res) {
     let body = null
@@ -40,36 +38,44 @@ app.get("/info", (_, response, next) => {
     .catch(error => next(error))
 })
 
-app.get("/api/persons", (_, response) => {
+app.get("/api/persons", (_, response, next) => {
     Person.find({}).then(persons => {
         console.log(persons)
         response.json(persons)
     }).catch(error => next(error))
 })
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
     const personId = request.params.id
 
     Person.findById(personId)
     .then(person => {
-        if(!person) return response.status(404).json({"Error": "Person not found"})
+        if(!person) {
+            const err = new Error()
+            err.name = "NotFound"
+            return next(err)
+        }
         return response.json(person)
     })
     .catch(error => next(error))
 })
 
-app.delete("/api/persons/:id", (request, response) => {
+app.delete("/api/persons/:id", (request, response, next) => {
     const personId = request.params.id
 
     Person.findByIdAndDelete(personId)
     .then(person => {
-        if(!person) return response.status(404).json({"Error":"Person not found"})
+        if(!person) {
+            const err = new Error()
+            err.name = "NotFound"
+            return next(err)
+        }
         return response.status(204).end()
     })
     .catch(error => next(error))
 })
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
     console.log(request.body)
     if(request.body.name && request.body.number) {
         const body = request.body
@@ -81,32 +87,49 @@ app.post("/api/persons", (request, response) => {
         .then(savedPerson => response.json(savedPerson))
         .catch(error => next(error))
     } else {
-        response.status(400).json({"Error": "Empty Details"})
+        const err = new Error()
+        err.name = "ValidationError"
+        return next(err)
     }
 })
 
-app.put("/api/persons/:id", (request, response) => {
-    const personId = request.params.id
-    const body = request.body
+app.put("/api/persons/:id", (request, response, next) => {
+    if (request.body.name && request.body.number) {
+        const personId = request.params.id
+        const body = request.body
 
-    Person.findByIdAndUpdate(
-        personId,
-        {
+        const person = {
             name: body.name,
             number: body.number
-        },
-        {new: true}
-    )
-    .then(updatedPerson => {
-        if(!updatedPerson) return response.status(404).json({"Error": "Person not found"})
-        return response.json(updatedPerson)
-    })
-    .catch(error => next(error))
+        }
+
+        Person.findByIdAndUpdate(personId, person, { new: true, runValidators: true, context: "query" })
+        .then(updatedPerson => {
+            if(!updatedPerson) {
+                const err = new Error()
+                err.name = "NotFound"
+                return next(err)
+            }
+            return response.json(updatedPerson)
+        })
+        .catch(error => next(error))
+    } else {
+        const err = new Error()
+        err.name = "ValidationError"
+        return next(err)
+    }
 })
 
+if(process.env.NODE_ENV === "production"){
+    app.use(express.static("dist"))
+
+    app.get("/{*splat}", (_, response) => {
+        response.sendFile(__dirname + "/dist/index.html")
+    })
+}
 
 const unknownEndpoint = (_, response) => {
-    response.status(404).send({error: "Unkown Endpoint"})
+    response.status(404).send({error: "Unknown Endpoint"})
 }
 
 app.use(unknownEndpoint)
@@ -118,29 +141,23 @@ const errorHandler = (error, req, res, next) => {
     return res.status(400).json({ error: 'malformatted id' })
   }
 
+  if(error.name === 'NotFound') {
+    return res.status(404).json({ error: 'Resource not found' })
+  }
+
   if (error.name === 'ValidationError') {
-    return res.status(400).json({ error: error.message })
+    return res.status(400).json({ error: 'Invalid Input' })
   }
 
   if (error.name === 'MongoServerError' && error.code === 11000) {
     return res.status(400).json({ error: 'duplicate value' })
   }
-
   return res.status(500).json({ error: 'internal server error' })
 }
 
 app.use(errorHandler)
 
-if(process.env.NODE_ENV === "production"){
-    app.use(express.static("dist"))
-
-    app.get("*", (_, response) => {
-        response.sendFile(__dirname + "/dist/index.html")
-    })
-}
-
-
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
-    console.log(`Server is runing on port ${PORT}`)
+    console.log(`Server is running on port ${PORT}`)
 })

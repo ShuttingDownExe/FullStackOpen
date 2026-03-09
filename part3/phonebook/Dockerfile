@@ -1,26 +1,25 @@
-# ---- Stage 1: install dependencies ----
-FROM node:20 AS builder
-
+# ---- Stage 1: build frontend ----
+FROM node:20 AS frontend-builder
 WORKDIR /app
-
-COPY ./phonebook/package*.json ./
-RUN npm ci --omit=dev
-
-COPY ./phonebook-frontend/ .
-
+COPY phonebook-frontend/package*.json ./
+RUN npm ci
+COPY phonebook-frontend/ ./
 RUN npm run build
 
-# ---- Stage 2: runtime ----
-FROM node:20-slim
-
+# ---- Stage 2: backend deps ----
+FROM node:20-slim AS backend-deps
 WORKDIR /app
+COPY phonebook-backend/package*.json ./
+RUN npm ci --omit=dev
 
-# copy only production node_modules
-COPY --from=builder /app/node_modules ./node_modules
+# ---- Stage 3: runtime ----
+FROM node:20-slim
+WORKDIR /app
+COPY --from=backend-deps /app/node_modules ./node_modules
+COPY phonebook-backend/index.js ./
+COPY phonebook-backend/modules ./modules
+COPY --from=frontend-builder /app/dist ./dist
 
-# copy ONLY runtime files
-COPY ./phonebook-backend/index.js .
-
+ENV PORT=3001
 ENV NODE_ENV=production
-
 CMD ["node", "index.js"]
