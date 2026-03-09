@@ -6,6 +6,10 @@ WORKDIR /app
 COPY ./phonebook/package*.json ./
 RUN npm ci --omit=dev
 
+COPY ./phonebook-frontend/ .
+
+RUN npm run build
+
 # ---- Stage 2: runtime ----
 FROM node:20-slim
 
