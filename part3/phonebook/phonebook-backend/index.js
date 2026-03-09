@@ -146,7 +146,7 @@ const errorHandler = (error, req, res, next) => {
   }
 
   if (error.name === 'ValidationError') {
-    return res.status(400).json({ error: 'Invalid Input' })
+    return res.status(400).json({ error: 'Invalid Input', message: error.message })
   }
 
   if (error.name === 'MongoServerError' && error.code === 11000) {
