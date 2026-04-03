@@ -89,7 +89,16 @@ const App = () => {
           setNewName("")
           setNewPhone("")
         }
-      )
+      ).catch(error => {
+        if(error.response.data.message){
+          setMessageType('error')
+          setMessage(error.response.data.message)
+        } else {
+          setMessageType('error')
+          setMessage('Bad Request')
+        }
+        console.log(error.response.data.message)
+      })
       setMessageType('info')
       setMessage(`${personObject.name} has been added`)
     } else {
