@@ -37,7 +37,7 @@ blogRouter.post('/', (request, response) => {
 });
 
 blogRouter.delete('/:id', (request, response) => {
-  Blog.findByIdAndRemove(request.params.id)
+  Blog.findByIdAndDelete(request.params.id)
     .then(() => {
       response.status(204).end();
     })

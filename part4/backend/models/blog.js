@@ -58,7 +58,7 @@ const blogSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator: (value) => {
-        return value.length <= 200 && value.length > 0;
+        return value.length <= 1000 && value.length > 0;
       },
       message: 'Summary must be between 1 and 200 characters long',
     },
