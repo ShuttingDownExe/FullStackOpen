@@ -27,6 +27,8 @@ const App = () => {
   useEffect(()=> {
     var items = blogService.getAll().then(blogs => {
       setBlogItems(blogs)
+    }).catch(error => {
+      console.error('Error fetching blogs:', error)
     })
   },[])
   

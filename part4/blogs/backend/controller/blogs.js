@@ -1,52 +1,46 @@
 const blogRouter = require('express').Router();
 const Blog = require('../models/blog');
 
-blogRouter.get('/', (_, response) => {
-  Blog.find({}).then((blogs) => {
-    response.json(blogs);
-  });
+blogRouter.get('/', async (_, response) => {
+  try{
+    const blogs = await Blog.find({})
+    response.json(blogs)
+  } catch (error) {next(error)}
 });
 
-blogRouter.get('/:id', (request, response) => {
-  Blog.findById(request.params.id)
-    .then((blog) => {
-      if (blog) {
-        response.json(blog);
-      } else {
-        response.status(404).json({ error: 'blog not found' });
-      }
-    })
-    .catch((_) => {
-      response.status(400).json({ error: 'malformatted id' });
-    });
+blogRouter.get('/:id', async(request, response) => {
+  try{
+    const blog = await Blog.findById(request.params.id)
+    if(blog) response.json(blog)
+    else response.status(404).json({error: 'blog not found'})
+  } catch(error) {next(error)}
 });
 
-blogRouter.post('/', (request, response) => {
-    if(request.body.title === undefined || request.body.author === undefined || request.body.url === undefined || request.body.summary === undefined) {
+blogRouter.post('/', async (request, response) => {
+    if(request.body.title === undefined 
+      || request.body.author === undefined 
+      || request.body.url === undefined 
+      || request.body.summary === undefined) {
         return response.status(400).json({ error: 'Title, author, URL, and summary are required' });
     }
 
-  const { title, author, url, likes, summary } = request.body;
+    const { title, author, url, likes, summary } = request.body;
     const blog = new Blog({ title, author, url, likes, summary });
 
-    blog.save().then((result) => {
-        response.status(201).json(result);
-    }).catch((error) => {
-        response.status(400).json({ error: error.message });
-    });
+    try {
+      const result = await blog.save()
+      response.status(201).json(result)
+    } catch(error) {next(error)}
 });
 
-blogRouter.delete('/:id', (request, response) => {
-  Blog.findByIdAndDelete(request.params.id)
-    .then(() => {
-      response.status(204).end();
-    })
-    .catch((_) => {
-      response.status(400).json({ error: 'malformatted id' });
-    });
+blogRouter.delete('/:id', async (request, response) => {
+  try {
+    await Blog.findByIdAndDelete(request.params.id)
+    response.status(201).end()
+  } catch (error) {next(error)}
 });
 
-blogRouter.patch('/:id', (request, response) => {
+blogRouter.patch('/:id', async (request, response) => {
   const { title, author, url, likes, summary } = request.body;
   const updatedBlog = {};
 
@@ -56,17 +50,12 @@ blogRouter.patch('/:id', (request, response) => {
   if (likes !== undefined) updatedBlog.likes = likes;
   if (summary !== undefined) updatedBlog.summary = summary;
 
-  Blog.findByIdAndUpdate(request.params.id, updatedBlog, { new: true, runValidators: true })
-    .then((result) => {
-      if (result) {
-        response.json(result);
-      } else {
-        response.status(404).json({ error: 'blog not found' });
-      }
-    })
-    .catch((error) => {
-      response.status(400).json({ error: error.message });
-    });
+  try {
+    const result = await Blog.findByIdAndUpdate(request.params.id, updatedBlog, {new: true, runValidators: true})
+
+    if (result){response.json(result)}
+    else {response.status(404).json({error: 'blog not found'})}
+  } catch (error) {next(error)}
 });
 
 
