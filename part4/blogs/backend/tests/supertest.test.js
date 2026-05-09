@@ -44,7 +44,7 @@ test('POST to the endpoint creates a new blog', async () => {
     "summary": "I would do anything for my daughter. Even put myself back like legos",
   }
 
-  const response = await api.post('/api/blogs').send(blog).expect(201)
+  await api.post('/api/blogs').send(blog).expect(201)
   const allblogs = await api.get('/api/blogs')
   const summaries = allblogs.body.map(blog => blog.summary)
   assert.strictEqual(allblogs.body.length, helper.initialBlogs.length+1)
