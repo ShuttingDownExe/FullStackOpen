@@ -3,13 +3,6 @@ const assert = require('assert');
 
 const listHelper = require('../utils/list_helper');
 
-test('dummy returns true', () => {
-    const blogs = [];
-
-    const result = listHelper.dummy(blogs);
-    assert.strictEqual(result, true);
-});
-
 describe('total likes', () => {
     const listWithOneBlog = [
     {

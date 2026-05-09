@@ -1,14 +1,14 @@
 const blogRouter = require('express').Router();
 const Blog = require('../models/blog');
 
-blogRouter.get('/', async (_, response) => {
+blogRouter.get('/', async (_, response, next) => {
   try{
     const blogs = await Blog.find({})
     response.json(blogs)
   } catch (error) {next(error)}
 });
 
-blogRouter.get('/:id', async(request, response) => {
+blogRouter.get('/:id', async(request, response, next) => {
   try{
     const blog = await Blog.findById(request.params.id)
     if(blog) response.json(blog)
@@ -16,7 +16,7 @@ blogRouter.get('/:id', async(request, response) => {
   } catch(error) {next(error)}
 });
 
-blogRouter.post('/', async (request, response) => {
+blogRouter.post('/', async (request, response, next) => {
     if(request.body.title === undefined 
       || request.body.author === undefined 
       || request.body.url === undefined 
@@ -33,14 +33,15 @@ blogRouter.post('/', async (request, response) => {
     } catch(error) {next(error)}
 });
 
-blogRouter.delete('/:id', async (request, response) => {
+blogRouter.delete('/:id', async (request, response, next) => {
   try {
-    await Blog.findByIdAndDelete(request.params.id)
-    response.status(201).end()
+    const blog = await Blog.findByIdAndDelete(request.params.id)
+    if (blog) {response.status(204).end()}
+    else if (blog == null) {response.status(404).end()}
   } catch (error) {next(error)}
 });
 
-blogRouter.patch('/:id', async (request, response) => {
+blogRouter.patch('/:id', async (request, response, next) => {
   const { title, author, url, likes, summary } = request.body;
   const updatedBlog = {};
 
