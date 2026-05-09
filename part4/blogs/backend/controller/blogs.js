@@ -9,7 +9,7 @@ blogRouter.get('/', async (_, response, next) => {
 });
 
 blogRouter.get('/:id', async(request, response, next) => {
-  try{
+  try {
     const blog = await Blog.findById(request.params.id)
     if(blog) response.json(blog)
     else response.status(404).json({error: 'blog not found'})
@@ -52,7 +52,8 @@ blogRouter.patch('/:id', async (request, response, next) => {
   if (summary !== undefined) updatedBlog.summary = summary;
 
   try {
-    const result = await Blog.findByIdAndUpdate(request.params.id, updatedBlog, {new: true, runValidators: true})
+    const result = await Blog.findByIdAndUpdate(request.params.id, updatedBlog, 
+      { returnDocument: 'after', runValidators: true })
 
     if (result){response.json(result)}
     else {response.status(404).json({error: 'blog not found'})}
